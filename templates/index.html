@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Image Color Palette Generator</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="{{url_for('.static', filename='css/style.css')}}"
+    />
+  </head>
+  <body>
+    <div class="bg">
+      <header>
+        <div>
+          <span
+            class="logo fs-1"
+            style="background: linear-gradient(to bottom, rgba{{ logo_color[0] }} 10%, rgba{{ logo_color[1] }} 85%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;"
+            >Image Color Palette Generator</span
+          >
+        </div>
+      </header>
+
+      <div class="container">
+        <div class="card inner-box">
+          <div class="card-body">
+            <p class="card-text">
+              {% if not form_values.file_name %} This tool can pull the most
+              common colors out of an uploaded image file.
+              <br />
+              The color values are in hexidecimal. You can try it out below. {%
+              else %}
+              <span style="color: rgba{{ logo_color[0] }}"
+                >{{ form_values.file_name }} </span
+              ><br />
+              Top
+              <span style="color: rgba{{ logo_color[0] }}"
+                >{{ form_values.num_results }}
+              </span>
+              colors ( Delta:
+              <span style="color: rgba{{ logo_color[0] }}"
+                >{{ form_values.delta }}</span
+              >
+              %, Brightness:
+              <span style="color: rgba{{ logo_color[0] }}"
+                >{{ form_values.brightness }}</span
+              >
+              %) {% endif %}
+            </p>
+          </div>
+          <img
+            src="{% if img %} {{img}} {% else %} ../static/img/sample.jpg {% endif %}"
+            class="uploaded-img"
+            alt="uploaded-img"
+          />
+
+          <table class="table table-striped">
+            <thead class="table-head">
+              <tr>
+                <th>No.</th>
+                <th>Color</th>
+                <th>Color Code</th>
+                <th>Percentage</th>
+              </tr>
+            </thead>
+            <tbody class="table-body">
+              {% for item in colors_top10 %}
+              <tr>
+                <td>{{ item.no }}</td>
+                <td
+                  style="background-color: rgb{{item.color}}; width: 250px; height:50px;"
+                ></td>
+                <td>rgb{{ item.color }}</td>
+                <td>{{ item.percentage | round(2) }} %</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <form
+            action="/color_extract"
+            method="post"
+            enctype="multipart/form-data"
+          >
+            <div class="form-group">
+              <label for="imgFile">File to upload (jpg, jpeg, png, gif):</label>
+              <div class="input-container">
+                {% if errors.imgFile %}
+                <div class="invalid-feedback mb-2" style="display: block">
+                  {{ errors.imgFile }}
+                </div>
+                {% endif %}
+                <input
+                  type="file"
+                  name="imgFile"
+                  id="imgFile"
+                  class="form-control"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="num_results">Number of colors:</label>
+              <div class="input-container">
+                {% if errors.num_results %}
+                <div class="invalid-feedback mb-2" style="display: block">
+                  {{ errors.num_results }}
+                </div>
+                {% endif %}
+                <input
+                  type="text"
+                  name="num_results"
+                  id="num_results"
+                  value="{{ form_values.num_results }}"
+                  class="form-control {% if errors.num_results %} is-invalid {% endif %}"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="delta">Delta (1-100%):</label>
+              <div class="input-container">
+                <input
+                  type="range"
+                  name="delta"
+                  id="delta"
+                  min="1"
+                  max="100"
+                  value="{{ form_values.delta }}"
+                  class="form-range"
+                  {%
+                  if
+                  errors.delta
+                  %}
+                  is-invalid
+                  {%
+                  endif
+                  %}
+                  oninput="document.getElementById('delta-value').innerText = this.value + ' %'"
+                />
+                <span id="delta-value">{{ form_values.delta }} %</span>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="brightness">Brightness (1-100%):</label>
+              <div class="input-container">
+                <input
+                  type="range"
+                  name="brightness"
+                  id="brightness"
+                  min="1"
+                  max="100"
+                  value="{{ form_values.brightness }}"
+                  class="form-range"
+                  {%
+                  if
+                  errors.brightness
+                  %}
+                  is-invalid
+                  {%
+                  endif
+                  %}
+                  oninput="document.getElementById('brightness-value').innerText = this.value + ' %'"
+                />
+                <span id="brightness-value"
+                  >{{ form_values.brightness }} %</span
+                >
+              </div>
+            </div>
+
+            <button
+              id="extractBtn"
+              type="submit"
+              class="col-4 btn btn-primary"
+              style="justify-items: center"
+            >
+              Confirm
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+  </body>
+</html>
